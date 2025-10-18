@@ -1,0 +1,74 @@
+# worked with Caydence, Naga, and Alex
+PythonFinalizationError
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from dataclasses import dataclass
+# ask about this line, still a little confusing
+import numpy as np
+
+
+@dataclass
+class State:
+    xpos: float
+    ypos: float
+    xvel: float
+    time: float
+
+deltaT = 0.75
+#this does not respresent time, it repsresent how often we will see a change in animation, so every 1 sec.
+
+def step (state:State) -> State:
+    new_xpos = state.xpos + state.xvel * deltaT
+
+    drag = 0.5 * 1.1 * 1.225 * state.xvel ** 2
+    mass = 800
+    if state.time <= 10: # the acceleration if statement must be used BEFORE we call acceleration in the equation below
+        acceleration = 2 - (drag/mass)
+    else: 
+        acceleration = -4 - (drag/mass)
+    new_xvel = state.xvel + acceleration * deltaT
+    '''no state.acceleration because acceleration is not in state class, ALSO dont use state.time, we are using deltaT,
+    state.time is how much time has passes in total, but the detlaT is each time position which will help us calculate
+      the velocity at each position'''
+    if new_xvel < 0:
+        new_xvel = 0 #this is needed to the car stops after the velocity is 0, if not it will start to go backwards,also we put the if statement after the equation this time, because we start positive, we put the other if statement before the equation because it just logically made sense
+    
+    new_time = state.time + deltaT # how much time has passed
+
+    newState = State (
+        xpos = new_xpos,
+        ypos = state.ypos,
+        xvel = new_xvel,
+        time = new_time
+    )
+
+    return newState
+
+
+def animate (i):
+    global s0
+    s0 = step(s0)
+    ax.clear()
+    ax.scatter([s0.xpos], [s0.ypos], s = 200, c = 'pink', marker = 's')
+    ax.set_xlim(0,300)
+    ax.set_ylim(0,10)
+    return ax,
+
+s0 = State(
+    xpos = 0,
+    ypos = 0,
+    xvel = 2,
+    time = 0
+)
+
+fig = plt.figure(figsize=(3,3), dpi=150)
+ax = fig.add_subplot(111)
+ax.grid()
+ax.set_xlim(-2, 2)
+ax.set_ylim(-2, 2)
+# these lines are so the animation doesnt zoom in or out
+plt.pause(3)
+ani = animation.FuncAnimation(fig, animate, interval=0)
+plt.show()
